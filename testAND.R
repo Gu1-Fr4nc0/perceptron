@@ -1,49 +1,51 @@
-# testAND.r
-# Testa o Perceptron Simples com o dataset da porta lógica AND.
+# ==================================================================
+# ARQUIVO: testAND.r
+# DESCRIÇÃO: Testa o Perceptron com o dataset da porta AND.
+#            Este problema é linearmente separável e deve convergir.
+# ==================================================================
 
-# Carrega as funções do perceptron
+#install.packages("ggplot2")
+library(ggplot2)
 source("perceptron.r")
 
-# --- 1. Preparação dos Dados ---
-# O Perceptron deve funcionar, pois o problema é linearmente separável.
-X1 <- c(0, 0, 1, 1)
-X2 <- c(0, 1, 0, 1)
-D_and <- c(-1, -1, -1, 1) # Saídas da porta AND (-1 para 0, +1 para 1)
+set.seed(42)
 
-# Cria o dataframe e adiciona a coluna de bias
-dataset_and <- data.frame(Bias = 1, X1 = X1, X2 = X2, D = D_and)
-print("Dataset AND:")
-print(dataset_and)
+# --- ALTERAÇÃO PRINCIPAL AQUI ---
+# Cria o dataset AND usando -1 para "falso" e +1 para "verdadeiro"
+and.data <- data.frame(
+  Bias = 1,
+  X1   = c(-1, -1, 1, 1),
+  X2   = c(-1, 1, -1, 1),
+  D    = c(-1, -1, -1, 1)
+)
 
-# --- 2. Treinamento ---
-obj_and <- perceptron.train(train.set = dataset_and, lrn.rate = 0.1)
+# Treina o modelo Perceptron
+cat("--- Treinando Perceptron para o problema AND ---\n")
+model <- perceptron.train(and.data, lrn.rate = 0.01, n.iter = 100)
 
-# --- 3. Visualização dos Resultados ---
-
-# Gráfico de Convergência (Época vs. Erro)
-df_error_and <- data.frame(epoch = 1:obj_and$epochs, avgError = obj_and$avgErrorVec)
-g_error_and <- ggplot(df_error_and, aes(x = epoch, y = avgError)) +
-  geom_line(color = "blue") + geom_point(color = "blue") +
-  labs(title = "Convergência do Perceptron no Dataset AND", x = "Época", y = "Erro Quadrático Médio") +
+# --- GERAÇÃO DOS GRÁFICOS ---
+error_data <- data.frame(Epoca = 1:model$epochs, Erro = model$avgErrorVec)
+error_plot <- ggplot(error_data, aes(x = Epoca, y = Erro)) +
+  geom_line(color = "steelblue") + geom_point(color = "steelblue") +
+  labs(title = "Performance do Treinamento (AND)",
+       subtitle = "Erro Quadrático Médio por Época",
+       x = "Época", y = "Erro Médio") +
   theme_minimal()
-print(g_error_and)
 
+w <- model$weights
+slope <- -(w[2] / w[3])
+intercept <- -(w[1] / w[3])
 
-# Gráfico do Hiperplano
-w0 <- obj_and$weights[1] # Peso do bias
-w1 <- obj_and$weights[2] # Peso para X1
-w2 <- obj_and$weights[3] # Peso para X2
-
-# Equação da reta: w1*x1 + w2*x2 + w0 = 0  =>  x2 = -(w1/w2)*x1 - (w0/w2)
-slope_and <- -w1 / w2
-intercept_and <- -w0 / w2
-
-dataPlot_and <- dataset_and
-dataPlot_and$D <- as.factor(dataPlot_and$D)
-
-g_hyperplane_and <- ggplot(dataPlot_and, aes(x = X1, y = X2, colour = D, shape = D)) +
+hyperplane_plot <- ggplot(and.data, aes(x = X1, y = X2, color = as.factor(D))) +
   geom_point(size = 5) +
+  labs(title = "Hiperplano Gerado para o Dataset AND",
+       x = "Entrada X1", y = "Entrada X2", color = "Classe") +
+  geom_abline(intercept = intercept, slope = slope, linetype = "dashed", color = "black") +
+  scale_color_manual(values = c("-1" = "red", "1" = "blue")) +
   theme_bw() +
-  labs(title = "Hiperplano Separador - Dataset AND") +
-  geom_abline(intercept = intercept_and, slope = slope_and, color = "red", linetype = "dashed")
-print(g_hyperplane_and)
+  ylim(-2, 2) + xlim(-2, 2)
+
+pdf("and_plots.pdf")
+print(error_plot)
+print(hyperplane_plot)
+dev.off()
