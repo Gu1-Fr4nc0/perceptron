@@ -36,14 +36,16 @@ w <- model$weights
 slope <- -(w[2] / w[3])
 intercept <- -(w[1] / w[3])
 
-hyperplane_plot <- ggplot(and.data, aes(x = X1, y = X2, color = as.factor(D))) +
+hyperplane_plot <- ggplot(and.data, aes(x = X1, y = X2, color = as.factor(D), shape = as.factor(D))) +
   geom_point(size = 5) +
   labs(title = "Hiperplano Gerado para o Dataset AND",
-       x = "Entrada X1", y = "Entrada X2", color = "Classe") +
+       x = "Entrada X1", y = "Entrada X2", color = "Classe", shape = "Classe") +
   geom_abline(intercept = intercept, slope = slope, linetype = "dashed", color = "black") +
   scale_color_manual(values = c("-1" = "red", "1" = "blue")) +
+  scale_shape_manual(values = c("-1" = 16, "1" = 17)) + # 16 = círculo, 17 = triângulo
   theme_bw() +
   ylim(-2, 2) + xlim(-2, 2)
+
 
 pdf("and_plots.pdf")
 print(error_plot)

@@ -26,9 +26,13 @@ model <- perceptron.train(xor.data, lrn.rate = 0.1, n.iter = 100)
 
 # 1. Gráfico de Erro vs. Época
 error_data <- data.frame(Epoca = 1:model$epochs, Erro = model$avgErrorVec)
+max_epochs <- model$epochs
+breaks <- if(max_epochs <= 20) 1:max_epochs else unique(round(seq(1, max_epochs, length.out = 10)))
+
 error_plot <- ggplot(error_data, aes(x = Epoca, y = Erro)) +
   geom_line(color = "darkred") +
   geom_point(color = "darkred") +
+  scale_x_continuous(breaks = breaks) + # Eixo X com inteiros
   labs(title = "Performance do Treinamento (XOR)",
        subtitle = "Erro nunca chega a zero, pois o problema não é linearmente separável",
        x = "Época",
@@ -40,15 +44,16 @@ w <- model$weights
 slope <- -(w[2] / w[3])
 intercept <- -(w[1] / w[3])
 
-hyperplane_plot <- ggplot(xor.data, aes(x = X1, y = X2, color = as.factor(D))) +
+hyperplane_plot <- ggplot(xor.data, aes(x = X1, y = X2, color = as.factor(D), shape = as.factor(D))) +
   geom_point(size = 5) +
   labs(title = "Tentativa de Hiperplano para o Dataset XOR",
        subtitle = "Uma única reta não consegue separar as classes",
-       x = "Entrada X1", y = "Entrada X2", color = "Classe") +
+       x = "Entrada X1", y = "Entrada X2", color = "Classe", shape = "Classe") +
   geom_abline(intercept = intercept, slope = slope, linetype = "dashed", color = "black") +
   scale_color_manual(values = c("-1" = "red", "1" = "blue")) +
+  scale_shape_manual(values = c("-1" = 16, "1" = 17)) + # 16 = círculo, 17 = triângulo
   theme_bw() +
-  ylim(-0.5, 1.5) + xlim(-0.5, 1.5)
+  ylim(-2, 2) + xlim(-2, 2)
 
 # Salva os gráficos em PDF
 pdf("xor_plots.pdf")
